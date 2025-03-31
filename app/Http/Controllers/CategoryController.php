@@ -26,6 +26,7 @@ class CategoryController extends Controller
 
     public function create()
     {
+        $categoryInterface = app()->make('CategoryInterface::class');
         // Render the React component for creating a category
         return Inertia::render('Category/Create',[
             'category' => Product::where('')->with(['category'])->get()
