@@ -2,6 +2,8 @@
 
 namespace App\Providers;
 
+use App\Repositories\All\Categories\CategoryInterface;
+use App\Repositories\All\Categories\CategoryRepository;
 use Illuminate\Support\Facades\Vite;
 use Illuminate\Support\ServiceProvider;
 
