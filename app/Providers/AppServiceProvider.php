@@ -6,6 +6,8 @@ use App\Repositories\All\Categories\CategoryInterface;
 use App\Repositories\All\Categories\CategoryRepository;
 use Illuminate\Support\Facades\Vite;
 use Illuminate\Support\ServiceProvider;
+use App\Repositories\All\Products\ProductInterface;
+use App\Repositories\All\Products\ProductRepository;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -15,6 +17,7 @@ class AppServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->app->bind(CategoryInterface::class, CategoryRepository::class);
+        $this->app->bind(ProductInterface::class, ProductRepository::class);
     }
 
     /**

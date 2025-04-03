@@ -6,13 +6,19 @@ use App\Models\Product;
 use App\Models\Category;
 use Illuminate\Http\Request;
 use App\Http\Requests\Request\ProductRequest;
+use App\Repositories\All\Products\ProductInterface;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Log;
 
 class ProductController extends Controller
 {
+
+    public function __construct(protected ProductInterface $productInterface){}
     // Show all products
     public function index() {
+
+        $products = $this->productInterface->all();
+
         $products = Product::select('products.id', 'products.title', 'products.description', 'categories.title as category_title', 'products.price')
             ->leftJoin('categories', 'products.category', '=', 'categories.id') // Join the categories table
             ->get();
@@ -39,6 +45,7 @@ class ProductController extends Controller
 
 public function show(Product $product)
 {
+    $product = $this->productInterface->findById($product->id);
 
     $category_id = $product->category;
     $category = Category::find($category_id);
@@ -57,27 +64,18 @@ public function show(Product $product)
 }
 
 
-
-    public function store(ProductRequest $request)
+public function store(ProductRequest $request)
 {
-
-    // Validate and create the product
-    $product = Product::create($request->validated());
-
-    // Handle image file upload if exists
-    if ($request->hasFile('image')) {
-        $imagePath = $request->file('image')->store('products', 'public');
-        $product->update(['image' => $imagePath]);
-    }
-
+    // Create a new product using the ProductInterface
+    $product = $this->productInterface->create($request->validated());
     // Redirect to the product list with a success message
     return redirect()->route('products.index')->with('success', 'Product created successfully.');
 }
 
-
     // Show the product editing form
     public function edit(Product $product)
     {
+        $product = $this->productInterface->findById($product->id);
         $categories = Category::all(); // Fetch all categories
         return Inertia::render('EditProduct', [
             'product' => $product,
@@ -86,17 +84,13 @@ public function show(Product $product)
     }
     // Update a product
     public function update(ProductRequest $request, Product $product) {
+
+        $product = $this->productInterface->findById($product->id);
         // Validate request using ProductRequest validation rules
         $validated = $request->validated();
 
         // Only update fields that are allowed
         $data = $validated;
-
-        // Handle image file upload if exists
-        if ($request->hasFile('image')) {
-            $data['image'] = $request->file('image')->store('products', 'public');
-        }
-
         // Update the product's attributes in the database
         $product->update($data);
 
@@ -106,7 +100,13 @@ public function show(Product $product)
 
     // Delete a product
     public function destroy($id) {
-        Product::findOrFail($id)->delete();
+        // Find the product by ID and delete it
+        $product = $this->productInterface->findById($id);
+        if (!$product) {
+            return redirect()->route('products.index')->with('alert-danger', 'Product not found.');
+        }
+        $product->delete();
+        // Redirect to the product list with a success message
         return redirect()->route('products.index')->with('success', 'Product deleted successfully.');
     }
 }
